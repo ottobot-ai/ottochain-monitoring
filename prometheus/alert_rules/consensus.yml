@@ -1,0 +1,113 @@
+# Alert rules for consensus health and operations
+
+groups:
+  - name: consensus_alerts
+    rules:
+      # Consensus taking too long
+      - alert: ConsensusSlowdown
+        expr: ottochain:consensus_duration_avg_5m > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Consensus duration exceeding 30s"
+          description: "Average consensus duration is {{ $value | humanizeDuration }} on {{ $labels.job }}. This may indicate network issues or overload."
+
+      - alert: ConsensusCriticalSlowdown
+        expr: ottochain:consensus_duration_avg_5m > 60
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Consensus duration critically high"
+          description: "Average consensus duration is {{ $value | humanizeDuration }} on {{ $labels.job }}. Immediate investigation required."
+
+      # Snapshot lag (falling behind)
+      - alert: SnapshotLagging
+        expr: ottochain:snapshot_lag_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Snapshot lagging behind wall clock"
+          description: "Snapshot lag is {{ $value | humanizeDuration }}. Consensus may be falling behind."
+
+      - alert: SnapshotCriticalLag
+        expr: ottochain:snapshot_lag_seconds > 300
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Snapshot critically lagging"
+          description: "Snapshot lag is {{ $value | humanizeDuration }}. Consensus may be stalled."
+
+      # Low facilitator participation
+      - alert: LowFacilitatorParticipation
+        expr: ottochain:facilitator_participation_percent < 67
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low facilitator participation in consensus"
+          description: "Only {{ $value | humanize }}% of expected facilitators signing snapshots. Some nodes may be offline."
+
+      - alert: CriticalFacilitatorParticipation
+        expr: ottochain:facilitator_participation_percent < 50
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical facilitator participation"
+          description: "Only {{ $value | humanize }}% of facilitators signing. Consensus may fail if more nodes drop."
+
+      # High rejection rate
+      - alert: HighRejectionRate
+        expr: ottochain:validation_rejection_rate_1m > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High validation rejection rate"
+          description: "{{ $value | humanize }} rejections per minute. Check for malformed transactions or attacks."
+
+      - alert: VeryHighRejectionRate
+        expr: ottochain:validation_rejection_rate_1m > 50
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Very high rejection rate"
+          description: "{{ $value | humanize }} rejections per minute. Possible attack or misconfigured client."
+
+      # Consensus stalled (no new ordinals)
+      - alert: ConsensusStalled
+        expr: |
+          increase(dag_global_snapshot_ordinal{job=~"ml0|gl0"}[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Consensus appears stalled"
+          description: "No new snapshots produced on {{ $labels.job }} in 5 minutes. Consensus may be stuck."
+
+      # Gossip round failures
+      - alert: GossipRoundFailures
+        expr: |
+          rate(dag_gossip_round_failed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gossip rounds failing"
+          description: "Gossip rounds failing on {{ $labels.job }}. May indicate network partitioning."
+
+      # State channel retry spike
+      - alert: StateChannelRetrySpike
+        expr: |
+          rate(dag_binaries_state_channel_retry_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High state channel retry rate"
+          description: "State channel binaries requiring frequent retries. Check network connectivity to GL0."

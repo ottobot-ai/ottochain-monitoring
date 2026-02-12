@@ -28,3 +28,43 @@ groups:
       - record: ottochain:all_nodes_up
         expr: |
           min(up{job=~"gl0|ml0|cl1|dl1"})
+
+  - name: consensus_recording
+    rules:
+      # Expected number of facilitators in the cluster
+      # Update this value based on your cluster configuration
+      - record: ottochain:cluster_expected_facilitators
+        expr: |
+          3
+
+      # Average consensus duration (5 minute window)
+      - record: ottochain:consensus_duration_avg_5m
+        expr: |
+          rate(dag_consensus_duration_sum{job=~"ml0|gl0"}[5m]) 
+          / rate(dag_consensus_duration_count{job=~"ml0|gl0"}[5m])
+
+      # Facilitator participation rate (%)
+      - record: ottochain:facilitator_participation_percent
+        expr: |
+          (dag_global_snapshot_signature_count / on() group_left() ottochain:cluster_expected_facilitators) * 100
+
+      # Snapshot lag vs wall clock (seconds)
+      # Requires dag_global_snapshot_timestamp metric (milliseconds since epoch)
+      - record: ottochain:snapshot_lag_seconds
+        expr: |
+          time() - (dag_global_snapshot_timestamp / 1000)
+
+      # Consensus rounds per minute
+      - record: ottochain:consensus_rounds_per_minute
+        expr: |
+          rate(dag_consensus_duration_count{job=~"ml0|gl0"}[1m]) * 60
+
+      # Rejection rate (per minute)
+      - record: ottochain:validation_rejection_rate_1m
+        expr: |
+          rate(dag_validation_rejections_total[1m]) * 60
+
+      # Transaction throughput (per minute)
+      - record: ottochain:transaction_throughput_1m
+        expr: |
+          rate(dag_global_snapshot_transactions_total[1m]) * 60

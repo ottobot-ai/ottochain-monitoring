@@ -126,6 +126,60 @@ Alert rules are organized in `prometheus/alert_rules/`:
 - **nodes.yml** - Tessellation node health (GL0, ML0, CL1, DL1)
 - **services.yml** - OttoChain services (monitor, bridge, etc.)
 - **infrastructure.yml** - System resources (CPU, memory, disk)
+- **consensus.yml** - Consensus health, facilitator participation, rejections
+
+## Dashboards
+
+### Tessellation Cluster (`tessellation.json`)
+Basic cluster health: up/down status, JVM memory, threads.
+
+### Infrastructure (`infrastructure.json`)
+System resources: CPU, memory, disk usage per server.
+
+### Consensus & Operations (`consensus.json`) ⭐ NEW
+Comprehensive consensus monitoring:
+
+| Panel | Metric | Description |
+|-------|--------|-------------|
+| Consensus Duration | `dag_consensus_duration` | Time to complete each consensus round |
+| Facilitator Participation | `dag_global_snapshot_signature_count` | % of expected facilitators signing |
+| Snapshot Lag | `dag_global_snapshot_timestamp` | Lag vs wall clock (detect falling behind) |
+| Rejections | `dag_validation_rejections_total` | Failed validations by reason |
+| Throughput | `dag_global_snapshot_*_total` | Blocks, transactions, SC snapshots/min |
+
+### Required Metrics
+
+Most metrics come from Tessellation's `/metrics` endpoint. Some may need additions:
+
+| Metric | Status | Notes |
+|--------|--------|-------|
+| `dag_consensus_duration` | ✅ Exists | In `ConsensusManager.scala` |
+| `dag_global_snapshot_signature_count` | ✅ Exists | In `GlobalSnapshotConsensusStateAdvancer.scala` |
+| `dag_global_snapshot_ordinal` | ✅ Exists | In `GlobalSnapshotConsensusStateAdvancer.scala` |
+| `dag_global_snapshot_timestamp` | ⚠️ TODO | Need to add in metagraph/Tessellation |
+| `dag_validation_rejections_total` | ⚠️ TODO | Need to add in validation pipeline |
+| `dag_signature_invalid_total` | ⚠️ TODO | Need to add in signature validation |
+| `dag_gossip_round_duration` | ✅ Exists | In `metrics.scala` |
+
+### Recording Rules
+
+Pre-computed metrics for faster queries (`prometheus/recording_rules.yml`):
+
+```yaml
+# Facilitator participation rate
+ottochain:facilitator_participation_percent
+
+# Average consensus duration
+ottochain:consensus_duration_avg_5m
+
+# Snapshot lag vs wall clock
+ottochain:snapshot_lag_seconds
+
+# Rejection rate per minute
+ottochain:validation_rejection_rate_1m
+```
+
+**Configuration**: Update `ottochain:cluster_expected_facilitators` in `recording_rules.yml` to match your cluster size (default: 3).
 
 ### Adding Custom Dashboards
 
