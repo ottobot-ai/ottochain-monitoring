@@ -30,10 +30,14 @@ function makeConfig(nodeCount: number = 3): Config {
     ports: { gl0: 9000, ml0: 9200, cl1: 9300, dl1: 9400 },
     sshKeyPath: '/test/key',
     sshUser: 'test',
-    checkIntervalMs: 60000,
-    webhookUrl: '',
     cliPorts: { gl0: 9001, ml0: 9201, cl1: 9301, dl1: 9401 },
     p2pPorts: { gl0: 9010, ml0: 9210, cl1: 9310, dl1: 9410 },
+    snapshotStallMinutes: 4,
+    healthCheckIntervalSeconds: 60,
+    restartCooldownMinutes: 10,
+    maxRestartsPerHour: 6,
+    daemon: false,
+    once: false,
   };
 }
 
