@@ -22,7 +22,8 @@ export async function detectUnhealthyNodes(config: Config): Promise<DetectionRes
 
   const unhealthyByLayer: Record<string, string[]> = {};
 
-  for (const layer of ['ml0', 'cl1', 'dl1'] as Layer[]) {
+  // Check all layers including GL0 (important for split-brain detection)
+  for (const layer of ['gl0', 'ml0', 'cl1', 'dl1'] as Layer[]) {
     const healths = await checkLayerHealth(config, layer);
 
     const unhealthy = healths.filter(h =>
@@ -49,6 +50,18 @@ export async function detectUnhealthyNodes(config: Config): Promise<DetectionRes
   const allLayersFullyDown = affectedLayers.every(
     l => unhealthyByLayer[l].length === allNodesCount
   );
+
+  // If GL0 is fully down, critical — metagraph has no L0 reference
+  if (unhealthyByLayer['gl0']?.length === allNodesCount) {
+    return {
+      detected: true,
+      condition: 'UnhealthyNodes',
+      details: `GL0 fully down — all ${allNodesCount} nodes unhealthy (metagraph orphaned)`,
+      restartScope: 'full-metagraph',
+      affectedLayers: ['gl0', 'ml0', 'cl1', 'dl1'],
+      affectedNodes: config.nodes.map(n => n.ip),
+    };
+  }
 
   // If ML0 is fully down, need full metagraph restart (CL1/DL1 depend on it)
   if (unhealthyByLayer['ml0']?.length === allNodesCount) {
