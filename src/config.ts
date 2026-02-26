@@ -61,7 +61,7 @@ export interface Config {
 }
 
 export function loadConfig(): Config {
-  const nodeIps = (process.env.NODE_IPS ?? '5.78.90.207,5.78.113.25,5.78.107.77').split(',');
+  const nodeIps = (process.env.NODE_IPS ?? '10.0.0.1,10.0.0.2,10.0.0.3').split(',');
   const nodeNames = (process.env.NODE_NAMES ?? 'node1,node2,node3').split(',');
 
   return {

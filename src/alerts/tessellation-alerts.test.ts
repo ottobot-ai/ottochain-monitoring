@@ -48,42 +48,42 @@ function makeDL1Events(types: Array<'DownloadPerformed' | 'RoundFinished' | 'Blo
 describe('checkML0ZeroUpdates', () => {
   it('returns null when all snapshots have updates', () => {
     const entries = makeML0Entries([5, 3, 8, 2, 6]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).toBeNull();
   });
 
   it('returns null when fewer than threshold consecutive zero-update snapshots', () => {
     // 2 consecutive zeros — below default threshold of 3
     const entries = makeML0Entries([5, 3, 0, 0, 5]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).toBeNull();
   });
 
   it('returns null when sporadic zeros are mixed with non-zero snapshots', () => {
     const entries = makeML0Entries([5, 0, 3, 0, 8]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).toBeNull();
   });
 
   it('fires CRITICAL alert when exactly 3 consecutive zero-update snapshots', () => {
     const entries = makeML0Entries([5, 3, 0, 0, 0]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('ml0-zero-updates');
     expect(result!.severity).toBe('critical');
-    expect(result!.nodeIp).toBe('5.78.90.207');
+    expect(result!.nodeIp).toBe('10.0.0.1');
   });
 
   it('fires CRITICAL alert when more than 3 consecutive zeros', () => {
     const entries = makeML0Entries([0, 0, 0, 0, 0]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).not.toBeNull();
     expect(result!.severity).toBe('critical');
   });
 
   it('alert details include consecutive count', () => {
     const entries = makeML0Entries([5, 0, 0, 0, 0]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).not.toBeNull();
     expect(result!.details).toHaveProperty('consecutiveZeroUpdates');
     expect(result!.details.consecutiveZeroUpdates).toBeGreaterThanOrEqual(4);
@@ -91,7 +91,7 @@ describe('checkML0ZeroUpdates', () => {
 
   it('alert message mentions DL1 pipeline', () => {
     const entries = makeML0Entries([0, 0, 0, 0]);
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).not.toBeNull();
     expect(result!.message.toLowerCase()).toMatch(/dl1|pipeline|0 updates/i);
   });
@@ -99,20 +99,20 @@ describe('checkML0ZeroUpdates', () => {
   it('respects custom threshold parameter', () => {
     // Only 2 consecutive zeros, but threshold is set to 2
     const entries = makeML0Entries([5, 3, 0, 0]);
-    const resultDefault = checkML0ZeroUpdates('5.78.90.207', entries, 3);
-    const resultCustom  = checkML0ZeroUpdates('5.78.90.207', entries, 2);
+    const resultDefault = checkML0ZeroUpdates('10.0.0.1', entries, 3);
+    const resultCustom  = checkML0ZeroUpdates('10.0.0.1', entries, 2);
     expect(resultDefault).toBeNull();
     expect(resultCustom).not.toBeNull();
   });
 
   it('returns null when entries array is empty', () => {
-    const result = checkML0ZeroUpdates('5.78.90.207', []);
+    const result = checkML0ZeroUpdates('10.0.0.1', []);
     expect(result).toBeNull();
   });
 
   it('returns null when there are fewer entries than threshold', () => {
     const entries = makeML0Entries([0, 0]); // only 2, threshold = 3
-    const result = checkML0ZeroUpdates('5.78.90.207', entries);
+    const result = checkML0ZeroUpdates('10.0.0.1', entries);
     expect(result).toBeNull();
   });
 });
@@ -128,7 +128,7 @@ describe('checkDL1DownloadOnly', () => {
       'DownloadPerformed', 'RoundFinished',
       'DownloadPerformed', 'RoundFinished',
     ]);
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     expect(result).toBeNull();
   });
 
@@ -138,7 +138,7 @@ describe('checkDL1DownloadOnly', () => {
       'DownloadPerformed', 'DownloadPerformed',
       'RoundFinished',
     ]);
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     expect(result).toBeNull();
   });
 
@@ -147,11 +147,11 @@ describe('checkDL1DownloadOnly', () => {
       'DownloadPerformed', 'DownloadPerformed', 'DownloadPerformed',
       'DownloadPerformed', 'DownloadPerformed',
     ]);
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('dl1-download-only');
     expect(result!.severity).toBe('critical');
-    expect(result!.nodeIp).toBe('5.78.90.207');
+    expect(result!.nodeIp).toBe('10.0.0.1');
   });
 
   it('alert details include download count', () => {
@@ -159,7 +159,7 @@ describe('checkDL1DownloadOnly', () => {
       'DownloadPerformed', 'DownloadPerformed', 'DownloadPerformed',
       'DownloadPerformed', 'DownloadPerformed', 'DownloadPerformed',
     ]);
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     expect(result).not.toBeNull();
     expect(result!.details).toHaveProperty('consecutiveDownloads');
     expect(result!.details.consecutiveDownloads).toBeGreaterThanOrEqual(5);
@@ -167,7 +167,7 @@ describe('checkDL1DownloadOnly', () => {
 
   it('alert message mentions peer count or DL1 degraded mode', () => {
     const events = makeDL1Events(Array(5).fill('DownloadPerformed'));
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     expect(result).not.toBeNull();
     expect(result!.message.toLowerCase()).toMatch(/peer|download|degraded|follower/i);
   });
@@ -176,14 +176,14 @@ describe('checkDL1DownloadOnly', () => {
     const events = makeDL1Events([
       'DownloadPerformed', 'DownloadPerformed', 'DownloadPerformed',
     ]);
-    const resultDefault = checkDL1DownloadOnly('5.78.90.207', events, 5);
-    const resultCustom  = checkDL1DownloadOnly('5.78.90.207', events, 3);
+    const resultDefault = checkDL1DownloadOnly('10.0.0.1', events, 5);
+    const resultCustom  = checkDL1DownloadOnly('10.0.0.1', events, 3);
     expect(resultDefault).toBeNull();
     expect(resultCustom).not.toBeNull();
   });
 
   it('returns null when events array is empty', () => {
-    const result = checkDL1DownloadOnly('5.78.90.207', []);
+    const result = checkDL1DownloadOnly('10.0.0.1', []);
     expect(result).toBeNull();
   });
 
@@ -196,7 +196,7 @@ describe('checkDL1DownloadOnly', () => {
     // consecutive window before RoundFinished was ≥5
     // This edge case: implementation may differ, but test documents expected behavior:
     // The window BEFORE RoundFinished had 5 consecutive downloads → alert fires
-    const result = checkDL1DownloadOnly('5.78.90.207', events);
+    const result = checkDL1DownloadOnly('10.0.0.1', events);
     // Implementation decision: alert fires based on the window of 5 consecutive downloads
     // that occurred even if RoundFinished came after. Tests document this expectation.
     expect(result).not.toBeNull();
@@ -209,38 +209,38 @@ describe('checkDL1DownloadOnly', () => {
 
 describe('checkGL0PeerDrop', () => {
   it('returns null when GL0 has 2 peers (healthy 3-node cluster)', () => {
-    const result = checkGL0PeerDrop('5.78.90.207', 2);
+    const result = checkGL0PeerDrop('10.0.0.1', 2);
     expect(result).toBeNull();
   });
 
   it('returns null when GL0 has 1 peer (valid 2-node majority cluster)', () => {
     // nodes2+3 each have peerCount=1 in a 2-node cluster — this is valid
-    const result = checkGL0PeerDrop('5.78.113.25', 1);
+    const result = checkGL0PeerDrop('10.0.0.2', 1);
     expect(result).toBeNull();
   });
 
   it('fires CRITICAL alert when GL0 has 0 peers (isolated)', () => {
-    const result = checkGL0PeerDrop('5.78.90.207', 0);
+    const result = checkGL0PeerDrop('10.0.0.1', 0);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('gl0-peer-drop');
     expect(result!.severity).toBe('critical');
-    expect(result!.nodeIp).toBe('5.78.90.207');
+    expect(result!.nodeIp).toBe('10.0.0.1');
   });
 
   it('alert details include peer count', () => {
-    const result = checkGL0PeerDrop('5.78.90.207', 0);
+    const result = checkGL0PeerDrop('10.0.0.1', 0);
     expect(result).not.toBeNull();
     expect(result!.details).toHaveProperty('peerCount', 0);
   });
 
   it('alert message mentions split-brain or isolation', () => {
-    const result = checkGL0PeerDrop('5.78.90.207', 0);
+    const result = checkGL0PeerDrop('10.0.0.1', 0);
     expect(result).not.toBeNull();
     expect(result!.message.toLowerCase()).toMatch(/isolated|split.brain|peer|solo/i);
   });
 
   it('fires for each of the 3 node IPs independently', () => {
-    const ips = ['5.78.90.207', '5.78.113.25', '5.78.107.77'];
+    const ips = ['10.0.0.1', '10.0.0.2', '10.0.0.3'];
     for (const ip of ips) {
       const result = checkGL0PeerDrop(ip, 0);
       expect(result).not.toBeNull();
@@ -255,32 +255,32 @@ describe('checkGL0PeerDrop', () => {
 
 describe('checkCL1ContainerDown', () => {
   it('returns null when CL1 container is running', () => {
-    const result = checkCL1ContainerDown('5.78.90.207', true);
+    const result = checkCL1ContainerDown('10.0.0.1', true);
     expect(result).toBeNull();
   });
 
   it('fires WARNING alert when CL1 container is not running', () => {
-    const result = checkCL1ContainerDown('5.78.90.207', false);
+    const result = checkCL1ContainerDown('10.0.0.1', false);
     expect(result).not.toBeNull();
     expect(result!.ruleId).toBe('cl1-container-down');
     expect(result!.severity).toBe('warning');
-    expect(result!.nodeIp).toBe('5.78.90.207');
+    expect(result!.nodeIp).toBe('10.0.0.1');
   });
 
   it('alert details include container status', () => {
-    const result = checkCL1ContainerDown('5.78.90.207', false);
+    const result = checkCL1ContainerDown('10.0.0.1', false);
     expect(result).not.toBeNull();
     expect(result!.details).toHaveProperty('isRunning', false);
   });
 
   it('alert message mentions CL1 or consensus layer', () => {
-    const result = checkCL1ContainerDown('5.78.90.207', false);
+    const result = checkCL1ContainerDown('10.0.0.1', false);
     expect(result).not.toBeNull();
     expect(result!.message.toLowerCase()).toMatch(/cl1|consensus/i);
   });
 
   it('fires for each node independently when all CL1 are down (known P0)', () => {
-    const nodes = ['5.78.90.207', '5.78.113.25', '5.78.107.77'];
+    const nodes = ['10.0.0.1', '10.0.0.2', '10.0.0.3'];
     for (const ip of nodes) {
       const result = checkCL1ContainerDown(ip, false);
       expect(result).not.toBeNull();
@@ -336,10 +336,10 @@ describe('isBenignEmberError', () => {
 describe('TessellationAlert structure', () => {
   it('all alert functions return alerts with required fields', () => {
     const alerts = [
-      checkML0ZeroUpdates('5.78.90.207', makeML0Entries([0, 0, 0, 0])),
-      checkDL1DownloadOnly('5.78.90.207', makeDL1Events(Array(5).fill('DownloadPerformed'))),
-      checkGL0PeerDrop('5.78.90.207', 0),
-      checkCL1ContainerDown('5.78.90.207', false),
+      checkML0ZeroUpdates('10.0.0.1', makeML0Entries([0, 0, 0, 0])),
+      checkDL1DownloadOnly('10.0.0.1', makeDL1Events(Array(5).fill('DownloadPerformed'))),
+      checkGL0PeerDrop('10.0.0.1', 0),
+      checkCL1ContainerDown('10.0.0.1', false),
     ];
 
     for (const alert of alerts) {

@@ -12,7 +12,7 @@ services:
     container_name: health-monitor
     restart: unless-stopped
     environment:
-      - NODE_IPS=${NODE_IPS:-5.78.90.207,5.78.113.25,5.78.107.77}
+      - NODE_IPS=${NODE_IPS:-10.0.0.1,10.0.0.2,10.0.0.3}
       - NODE_NAMES=${NODE_NAMES:-node1,node2,node3}
       - SSH_KEY_PATH=/home/monitor/.ssh/id_rsa
       - SSH_USER=${SSH_USER:-root}

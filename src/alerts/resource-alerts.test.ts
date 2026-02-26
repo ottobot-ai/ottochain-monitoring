@@ -29,7 +29,7 @@ const GB = 1024 * 1024 * 1024;
 
 function makeSnapshot(overrides: Partial<NodeResourceSnapshot> = {}): NodeResourceSnapshot {
   return {
-    nodeIp: '5.78.90.207',
+    nodeIp: '10.0.0.1',
     ramTotal: 20 * GB,
     ramUsed: 10 * GB,   // 50% — below warning
     swapTotal: 8 * GB,
@@ -130,7 +130,7 @@ describe('evaluateResourceAlerts — RAM', () => {
     const ramAlert = alerts.find(a => a.metric === 'ram_pct');
     expect(ramAlert).toBeDefined();
     expect(ramAlert!.severity).toBe('warning');
-    expect(ramAlert!.nodeIp).toBe('5.78.90.207');
+    expect(ramAlert!.nodeIp).toBe('10.0.0.1');
     expect(ramAlert!.threshold).toBe(THRESHOLDS.ram_warning_pct);
   });
 
@@ -258,7 +258,7 @@ describe('checkProcessAbsent', () => {
     expect(result!.metric).toBe('process_absent');
     expect(result!.severity).toBe('warning');
     expect(result!.layer).toBe('GL0');
-    expect(result!.nodeIp).toBe('5.78.90.207');
+    expect(result!.nodeIp).toBe('10.0.0.1');
   });
 
   it('CL1 absent fires alert (currently known P0 condition)', () => {
@@ -305,7 +305,7 @@ describe('evaluateResourceAlerts — combined', () => {
     const alerts = evaluateResourceAlerts(snapshot);
     const ramAlert = alerts.find(a => a.metric === 'ram_pct');
     expect(ramAlert).toBeDefined();
-    expect(ramAlert!.message).toContain('5.78.90.207');
+    expect(ramAlert!.message).toContain('10.0.0.1');
     expect(ramAlert!.message.length).toBeGreaterThan(10);
   });
 
