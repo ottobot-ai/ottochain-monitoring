@@ -109,10 +109,67 @@
 
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Constellation hypergraph ordinal. For scratch clusters this equals the local GL0 ordinal. For testnet/mainnet it reflects the public LB. Requires HYPERGRAPH_L0_URLS on the monitor, or a 'hypergraph-l0' Prometheus scrape job.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 7,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "ottochain_hypergraph_ordinal",
+          "legendFormat": "Hypergraph Ordinal",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(dag_global_snapshot_ordinal{job=\"hypergraph-l0\"})",
+          "legendFormat": "Hypergraph Ordinal (Prom)",
+          "hide": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Hypergraph Ordinal (Global L0)",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Number of metagraph state channel snapshots included in the latest hypergraph snapshot. Non-zero = our data is flowing into the global ledger.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 2, "x": 16, "y": 1 },
+      "id": 8,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "ottochain_hypergraph_state_channels",
+          "legendFormat": "State Channels",
+          "refId": "A"
+        }
+      ],
+      "title": "Metagraphs in Hypergraph",
+      "type": "stat"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "color": { "mode": "thresholds" } }
       },
-      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 1 },
+      "gridPos": { "h": 4, "w": 2, "x": 18, "y": 1 },
       "id": 4,
       "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
       "targets": [
@@ -132,7 +189,7 @@
       "fieldConfig": {
         "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "color": { "mode": "thresholds" } }
       },
-      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 1 },
+      "gridPos": { "h": 4, "w": 2, "x": 20, "y": 1 },
       "id": 5,
       "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
       "targets": [
@@ -156,7 +213,7 @@
           "color": { "mode": "thresholds" }
         }
       },
-      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 },
+      "gridPos": { "h": 4, "w": 2, "x": 22, "y": 1 },
       "id": 6,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
       "targets": [
@@ -232,6 +289,7 @@
 
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Constellation hypergraph ordinal over time. Primary source: ottochain_hypergraph_ordinal (monitor). Fallback: dag_global_snapshot_ordinal{job=\"hypergraph-l0\"} when Prometheus scrapes the LB directly.",
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" }, "unit": "short", "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5, "showPoints": "never" } }
       },
@@ -240,12 +298,18 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "max(dag_global_snapshot_ordinal{job=\"gl0\"}) - max(dag_global_snapshot_ordinal{job=\"ml0\"})",
-          "legendFormat": "GL0 - ML0 ordinal lag",
+          "expr": "ottochain_hypergraph_ordinal",
+          "legendFormat": "Hypergraph (monitor)",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(dag_global_snapshot_ordinal{job=\"hypergraph-l0\"})",
+          "legendFormat": "Hypergraph (Prom scrape)",
+          "refId": "B"
         }
       ],
-      "title": "Metagraph ↔ Hypergraph Ordinal Lag",
+      "title": "Hypergraph Ordinal Over Time",
       "type": "timeseries"
     },
 
@@ -260,11 +324,48 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "expr": "rate(dag_global_snapshot_state_channel_snapshots_total{job=\"gl0\",instance=~\"$node\"}[5m])",
-          "legendFormat": "state channel snapshot rate",
+          "legendFormat": "state channel snapshot rate (GL0)",
           "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(dag_global_snapshot_state_channel_snapshots_total{job=\"hypergraph-l0\"}[5m])",
+          "legendFormat": "state channel snapshot rate (Hypergraph LB)",
+          "refId": "B"
         }
       ],
       "title": "State Channel Snapshots in Hypergraph (rate)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Delta between the Constellation hypergraph ordinal and our metagraph ML0 ordinal. For scratch clusters this should be near 0 (same chain). For testnet/mainnet a non-zero lag means our snapshots haven't been included in that many hypergraph rounds yet.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 20 }] },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 10 },
+      "id": 14,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "ottochain_hypergraph_ordinal - max(ottochain_node_ordinal{layer=\"ml0\"})",
+          "legendFormat": "Hypergraph − ML0 ordinal delta",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(dag_global_snapshot_ordinal{job=\"hypergraph-l0\"}) - max(dag_global_snapshot_ordinal{job=\"ml0\",instance=~\"$node\"})",
+          "legendFormat": "Hypergraph − ML0 (Prom, testnet/mainnet)",
+          "refId": "B"
+        }
+      ],
+      "title": "Metagraph → Hypergraph Lag",
       "type": "timeseries"
     },
 

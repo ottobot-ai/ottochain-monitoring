@@ -76,6 +76,48 @@ scrape_configs:
         target_label: instance
         replacement: 'metagraph'
 
+  # ===== Constellation Hypergraph (Global L0) =====
+  # Scrapes the Constellation public load balancer's /metrics endpoint, which
+  # exposes the same metric set as local tessellation nodes (dag_*, jvm_*, etc.)
+  # Available on all network environments.
+  #
+  # Usage:
+  #   Scratch cluster: Comment this out — the local GL0 IS the hypergraph.
+  #                    Use HYPERGRAPH_L0_URLS=http://<GL0_HOST>:9000 on the monitor instead.
+  #   TestNet:         Uncomment and point to l0-lb-testnet.constellationnetwork.io
+  #   MainNet:         Uncomment and point to l0-lb-mainnet.constellationnetwork.io
+  #
+  # Dashboard panels that use this job: "Hypergraph Ordinal Over Time",
+  # "State Channel Snapshots in Hypergraph (rate)", "Metagraph → Hypergraph Lag"
+  #
+  # Key metrics available:
+  #   dag_global_snapshot_ordinal          — current hypergraph ordinal
+  #   dag_global_snapshot_state_channel_snapshots_total — metagraph data flowing in
+  #   dag_consensus_duration_seconds       — hypergraph consensus timing
+  #   jvm_gc_overhead                      — hypergraph node GC health
+  #   process_uptime_seconds               — LB-fronted node uptime
+  #
+  # NOTE: The monitor also exports ottochain_hypergraph_ordinal and
+  # ottochain_hypergraph_state_channels when HYPERGRAPH_L0_URLS is set —
+  # those are the primary sources for the overview stat panels.
+  #
+  # - job_name: 'hypergraph-l0'
+  #   static_configs:
+  #     # TestNet:
+  #     - targets: ['l0-lb-testnet.constellationnetwork.io:443']
+  #     # MainNet:
+  #     # - targets: ['l0-lb-mainnet.constellationnetwork.io:443']
+  #   metrics_path: /metrics
+  #   scheme: https
+  #   scrape_interval: 30s
+  #   # The LB rotates requests across ~150 nodes; results are averaged across the fleet.
+  #   # Use honor_labels to preserve job/instance from the LB response.
+  #   honor_labels: false
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: instance
+  #       replacement: 'hypergraph-lb'
+
   # ===== Self-monitoring =====
   - job_name: 'prometheus'
     static_configs:
