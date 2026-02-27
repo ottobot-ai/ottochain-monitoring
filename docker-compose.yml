@@ -24,7 +24,7 @@ services:
     volumes:
       - ${SSH_KEY_PATH:-~/.ssh/hetzner_ottobot}:/home/monitor/.ssh/id_rsa:ro
     networks:
-      - monitoring
+      - ottochain
     # Expose metrics port for Prometheus scraping (if enabled)
     ports:
       - "3032:3032"
@@ -52,7 +52,7 @@ services:
     depends_on:
       - alertmanager
     networks:
-      - monitoring
+      - ottochain
 
   # ============================================
   # Alertmanager - Alert routing & notifications
@@ -72,7 +72,7 @@ services:
       - '--storage.path=/alertmanager'
       - '--web.external-url=http://${ALERT_SERVER_IP:-localhost}:9093'
     networks:
-      - monitoring
+      - ottochain
 
   # ============================================
   # Grafana - Dashboards & visualization
@@ -103,7 +103,7 @@ services:
     depends_on:
       - prometheus
     networks:
-      - monitoring
+      - ottochain
 
   # ============================================
   # Loki - Log aggregation (optional)
@@ -119,7 +119,7 @@ services:
       - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - monitoring
+      - ottochain
     profiles:
       - logging
 
@@ -130,5 +130,6 @@ volumes:
   loki_data:
 
 networks:
-  monitoring:
-    driver: bridge
+  ottochain:
+    external: true
+    name: ottochain
