@@ -10,6 +10,14 @@ export interface NodeConfig {
   ip: string;
 }
 
+export interface HypergraphConfig {
+  enabled: boolean;
+  l0Urls: string[];
+  l1Urls?: string[];
+  metagraphId?: string;
+  checkIntervalMultiplier: number;
+}
+
 export interface Config {
   /** Metagraph nodes (must match cluster size) */
   nodes: NodeConfig[];
@@ -60,6 +68,28 @@ export interface Config {
   /** Run mode */
   daemon: boolean;
   once: boolean;
+
+  /** Optional hypergraph monitoring */
+  hypergraph?: HypergraphConfig;
+}
+
+function buildHypergraphConfig(): HypergraphConfig | undefined {
+  const enabled = process.env.HYPERGRAPH_ENABLED === 'true';
+  if (!enabled) return undefined;
+
+  const l0Urls = (process.env.HYPERGRAPH_L0_URLS ?? '').split(',').map(u => u.trim()).filter(Boolean);
+  if (l0Urls.length === 0) return undefined;
+
+  const l1Raw = process.env.HYPERGRAPH_L1_URLS;
+  const l1Urls = l1Raw ? l1Raw.split(',').map(u => u.trim()).filter(Boolean) : undefined;
+
+  return {
+    enabled: true,
+    l0Urls,
+    l1Urls: l1Urls && l1Urls.length > 0 ? l1Urls : undefined,
+    metagraphId: process.env.HYPERGRAPH_METAGRAPH_ID || undefined,
+    checkIntervalMultiplier: int(process.env.HYPERGRAPH_CHECK_MULTIPLIER, 3),
+  };
 }
 
 export function loadConfig(): Config {
@@ -107,6 +137,8 @@ export function loadConfig(): Config {
 
     daemon: process.argv.includes('--daemon'),
     once: process.argv.includes('--once'),
+
+    hypergraph: buildHypergraphConfig(),
   };
 }
 
